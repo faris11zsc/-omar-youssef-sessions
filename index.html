@@ -128,8 +128,8 @@
     let isEditMode = false;
     let data = { youssef: [], omar: [] };
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const isAdmin = urlParams.get('admin') === 'true';
+    const queryString = window.location.search.toLowerCase();
+    const isAdmin = queryString.includes('admin');
 
     if (!isAdmin) {
       document.getElementById('editToggleBtn').style.display = 'none';
@@ -252,6 +252,7 @@
   </script>
 </body>
 </html>
+
 
 
 
