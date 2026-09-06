@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LightKnight - September 2026 Tracker</title>
   <style>
     body { margin: 0; padding: 20px; background-color: #f7f5ef; font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #2D2D2D; }
@@ -11,7 +12,11 @@
     .header p { margin: 8px 0 0; color: #a0aec0; font-size: 16px; }
     .content { padding: 40px; }
     .invoice-title { font-size: 24px; font-weight: bold; color: #1a2744; margin-top: 0; margin-bottom: 20px; }
-    .info-box { background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px; border-left: 4px solid #1a2744; display: flex; justify-content: space-between; align-items: center;}
+    .info-box { background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px; border-left: 4px solid #1a2744; display: flex; flex-direction: column; gap: 15px; align-items: flex-start;}
+@media (min-width: 600px) { .info-box { flex-direction: row; justify-content: space-between; align-items: center; } }
+table { width: 100%; border-collapse: collapse; margin-bottom: 30px; display: block; overflow-x: auto; white-space: nowrap; }
+@media (min-width: 600px) { table { display: table; white-space: normal; } }
+.controls { display: flex; gap: 10px; margin-bottom: 15px; background: #f0f4f8; padding: 15px; border-radius: 8px; align-items: center; flex-wrap: wrap; }
     .section-title { font-size: 20px; color: #1a2744; margin-bottom: 15px; padding-bottom: 5px; border-bottom: 2px solid #c5a44e; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
     
     .controls { display: flex; gap: 10px; margin-bottom: 15px; background: #f0f4f8; padding: 15px; border-radius: 8px; align-items: center; flex-wrap: wrap; }
@@ -194,15 +199,37 @@
       }
     }
 
-    async function saveToNotion() {
+        async function saveToNotion() {
+      document.getElementById('editToggleBtn').innerText = "Syncing to Notion... ⏳";
       try {
-        await fetch('/api/tracker', {
+        const res = await fetch('/api/tracker', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data)
         });
+        if (!res.ok) {
+           const err = await res.text();
+           alert("❌ CRITICAL NOTION ERROR ❌\n\nThe sessions were saved to your local PC memory, but FAILED to upload to Notion!\nParents will NOT see this update.\n\nError details:\n" + err + "\n\nDid you forget to Redeploy Vercel after adding the NOTION_TOKEN?");
+        }
       } catch (e) {
-        console.error("Failed to save to Notion:", e);
+        alert("❌ NETWORK ERROR ❌\nCould not connect to Vercel API. Are you offline?");
+      }
+      setTimeout(() => toggleEditMode(true), 500); // Reset button text
+    }
+
+    // Adjust toggleEditMode to accept a refresh param
+    function toggleEditMode(preserveState = false) {
+      if (!preserveState) isEditMode = !isEditMode;
+      const btn = document.getElementById('editToggleBtn');
+      const content = document.querySelector('.content');
+      if (isEditMode) {
+        btn.innerText = "Disable Edit Mode";
+        btn.classList.add('active');
+        content.classList.add('edit-mode');
+      } else {
+        btn.innerText = "Enable Edit Mode";
+        btn.classList.remove('active');
+        content.classList.remove('edit-mode');
       }
     }
 
@@ -232,15 +259,7 @@
       }
     }
 
-    function toggleEditMode() {
-      isEditMode = !isEditMode;
-      const btn = document.getElementById('editToggleBtn');
-      const content = document.querySelector('.content');
-      if (isEditMode) {
-        btn.innerText = "Disable Edit Mode";
-        btn.classList.add('active');
-        content.classList.add('edit-mode');
-      } else {
+     else {
         btn.innerText = "Enable Edit Mode";
         btn.classList.remove('active');
         content.classList.remove('edit-mode');
@@ -252,6 +271,7 @@
   </script>
 </body>
 </html>
+
 
 
 
