@@ -251,7 +251,7 @@ table { width: 100%; border-collapse: collapse; margin-bottom: 30px; display: bl
       saveToNotion();
     }
 
-    function removeSession(student, id) {
+        function removeSession(student, id) {
       if(confirm("Delete this session?")) {
         data[student] = data[student].filter(s => s.id !== id);
         render();
@@ -259,7 +259,15 @@ table { width: 100%; border-collapse: collapse; margin-bottom: 30px; display: bl
       }
     }
 
-     else {
+    function toggleEditMode(preserveState = false) {
+      if (!preserveState) isEditMode = !isEditMode;
+      const btn = document.getElementById('editToggleBtn');
+      const content = document.querySelector('.content');
+      if (isEditMode) {
+        btn.innerText = "Disable Edit Mode";
+        btn.classList.add('active');
+        content.classList.add('edit-mode');
+      } else {
         btn.innerText = "Enable Edit Mode";
         btn.classList.remove('active');
         content.classList.remove('edit-mode');
@@ -271,9 +279,3 @@ table { width: 100%; border-collapse: collapse; margin-bottom: 30px; display: bl
   </script>
 </body>
 </html>
-
-
-
-
-
-
