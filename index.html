@@ -124,7 +124,7 @@
     </div>
   </div>
 
-    <script>
+      <script>
     let isEditMode = false;
     let data = { youssef: [], omar: [] };
 
@@ -150,7 +150,7 @@
       let d = dateObj.getDate();
       let y = dateObj.getFullYear();
       let dayName = days[dateObj.getDay()];
-      return ${m} ,  ();
+      return `${m} ${d}, ${y} (${dayName})`;
     }
 
     function render() {
@@ -162,13 +162,13 @@
         data[student].forEach(session => {
           let cleanStr = session.str.split(' - ')[0];
           const tr = document.createElement('tr');
-          tr.innerHTML = 
-            <td></td>
+          tr.innerHTML = `
+            <td>${cleanStr}</td>
             <td>Attended</td>
             <td class="remove-col" style="text-align:center;">
-              <button class="remove-btn" onclick="removeSession('', )">Remove</button>
+              <button class="remove-btn" onclick="removeSession('${student}', ${session.id})">Remove</button>
             </td>
-          ;
+          `;
           tbody.appendChild(tr);
           session.str = cleanStr;
         });
@@ -252,6 +252,7 @@
   </script>
 </body>
 </html>
+
 
 
 
