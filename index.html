@@ -129,7 +129,7 @@ table { width: 100%; border-collapse: collapse; margin-bottom: 30px; display: bl
     </div>
   </div>
 
-      <script>
+        <script>
     let isEditMode = false;
     let data = { youssef: [], omar: [] };
 
@@ -183,7 +183,7 @@ table { width: 100%; border-collapse: collapse; margin-bottom: 30px; display: bl
       localStorage.setItem('lightknight_sept26', JSON.stringify(data));
     }
 
-        async function fetchData() {
+    async function fetchData() {
       try {
         const res = await fetch('/api/tracker');
         if (res.ok) {
@@ -198,13 +198,8 @@ table { width: 100%; border-collapse: collapse; margin-bottom: 30px; display: bl
         console.error("Failed to fetch:", e);
       }
     }
-        }
-      } catch (e) {
-        console.error("Failed to fetch from Notion:", e);
-      }
-    }
 
-            async function saveData() {
+    async function saveData() {
       document.getElementById('editToggleBtn').innerText = "Syncing... ⏳";
       try {
         const res = await fetch('/api/tracker', {
@@ -219,6 +214,32 @@ table { width: 100%; border-collapse: collapse; margin-bottom: 30px; display: bl
         alert("❌ NETWORK ERROR ❌\nCould not connect to sync server. Are you offline?");
       }
       setTimeout(() => toggleEditMode(true), 500);
+    }
+
+    function punchIn(student) {
+      const now = new Date();
+      data[student].push({ id: Date.now(), ts: now.getTime(), str: formatDate(now) });
+      render();
+      saveData();
+    }
+
+    function addPastSession(student) {
+      const input = document.getElementById(student + '-past-date');
+      if (!input.value) { alert("Please select a date first."); return; }
+      const dateParts = input.value.split('-');
+      const pastDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+      data[student].push({ id: Date.now(), ts: pastDate.getTime(), str: formatDate(pastDate) });
+      input.value = '';
+      render();
+      saveData();
+    }
+
+    function removeSession(student, id) {
+      if(confirm("Delete this session?")) {
+        data[student] = data[student].filter(s => s.id !== id);
+        render();
+        saveData();
+      }
     }
 
     function toggleEditMode(preserveState = false) {
@@ -241,5 +262,6 @@ table { width: 100%; border-collapse: collapse; margin-bottom: 30px; display: bl
   </script>
 </body>
 </html>
+
 
 
