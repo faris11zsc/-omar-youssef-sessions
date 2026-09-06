@@ -142,7 +142,7 @@ table { width: 100%; border-collapse: collapse; margin-bottom: 30px; display: bl
       controls.forEach(c => c.style.display = 'none');
     }
 
-    const saved = localStorage.getItem('lightknight_sept26');
+    const saved = localStorage.getItem('lightknight_v3');
     if (saved) {
       try { data = JSON.parse(saved); } catch (e) {}
     }
@@ -164,7 +164,8 @@ table { width: 100%; border-collapse: collapse; margin-bottom: 30px; display: bl
         tbody.innerHTML = '';
         
         data[student].sort((a, b) => a.ts - b.ts);
-        data[student].forEach(session => {
+                data[student].forEach(session => {
+          if (!session || typeof session.str !== 'string') return;
           let cleanStr = session.str.split(' - ')[0];
           const tr = document.createElement('tr');
           tr.innerHTML = `
@@ -180,7 +181,7 @@ table { width: 100%; border-collapse: collapse; margin-bottom: 30px; display: bl
         document.getElementById(student + '-count').innerText = data[student].length;
       });
       document.getElementById('total-count').innerText = data.youssef.length + data.omar.length;
-      localStorage.setItem('lightknight_sept26', JSON.stringify(data));
+      localStorage.setItem('lightknight_v3', JSON.stringify(data));
     }
 
     async function fetchData() {
@@ -190,7 +191,7 @@ table { width: 100%; border-collapse: collapse; margin-bottom: 30px; display: bl
           const fetchedData = await res.json();
           if (fetchedData.youssef && fetchedData.omar) {
             data = fetchedData;
-            localStorage.setItem('lightknight_sept26', JSON.stringify(data));
+            localStorage.setItem('lightknight_v3', JSON.stringify(data));
             render();
           }
         }
@@ -262,6 +263,7 @@ table { width: 100%; border-collapse: collapse; margin-bottom: 30px; display: bl
   </script>
 </body>
 </html>
+
 
 
 
