@@ -185,7 +185,7 @@ table { width: 100%; border-collapse: collapse; margin-bottom: 30px; display: bl
 
         async function fetchData() {
       try {
-        const res = await fetch('https://extendsclass.com/api/json-storage/bin/fcdbadc');
+        const res = await fetch('/api/tracker');
         if (res.ok) {
           const fetchedData = await res.json();
           if (fetchedData.youssef && fetchedData.omar) {
@@ -207,8 +207,8 @@ table { width: 100%; border-collapse: collapse; margin-bottom: 30px; display: bl
             async function saveData() {
       document.getElementById('editToggleBtn').innerText = "Syncing... ⏳";
       try {
-        const res = await fetch('https://extendsclass.com/api/json-storage/bin/fcdbadc', {
-          method: 'PUT',
+        const res = await fetch('/api/tracker', {
+          method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data)
         });
@@ -241,4 +241,5 @@ table { width: 100%; border-collapse: collapse; margin-bottom: 30px; display: bl
   </script>
 </body>
 </html>
+
 
