@@ -183,9 +183,9 @@ table { width: 100%; border-collapse: collapse; margin-bottom: 30px; display: bl
       localStorage.setItem('lightknight_sept26', JSON.stringify(data));
     }
 
-    async function fetchFromNotion() {
+        async function fetchData() {
       try {
-        const res = await fetch('/api/tracker');
+        const res = await fetch('https://extendsclass.com/api/json-storage/bin/fcdbadc');
         if (res.ok) {
           const fetchedData = await res.json();
           if (fetchedData.youssef && fetchedData.omar) {
@@ -195,68 +195,30 @@ table { width: 100%; border-collapse: collapse; margin-bottom: 30px; display: bl
           }
         }
       } catch (e) {
+        console.error("Failed to fetch:", e);
+      }
+    }
+        }
+      } catch (e) {
         console.error("Failed to fetch from Notion:", e);
       }
     }
 
-        async function saveToNotion() {
-      document.getElementById('editToggleBtn').innerText = "Syncing to Notion... ⏳";
+            async function saveData() {
+      document.getElementById('editToggleBtn').innerText = "Syncing... ⏳";
       try {
-        const res = await fetch('/api/tracker', {
-          method: 'POST',
+        const res = await fetch('https://extendsclass.com/api/json-storage/bin/fcdbadc', {
+          method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data)
         });
         if (!res.ok) {
-           const err = await res.text();
-           alert("❌ CRITICAL NOTION ERROR ❌\n\nThe sessions were saved to your local PC memory, but FAILED to upload to Notion!\nParents will NOT see this update.\n\nError details:\n" + err + "\n\nDid you forget to Redeploy Vercel after adding the NOTION_TOKEN?");
+           alert("❌ Sync failed! Please try again.");
         }
       } catch (e) {
-        alert("❌ NETWORK ERROR ❌\nCould not connect to Vercel API. Are you offline?");
+        alert("❌ NETWORK ERROR ❌\nCould not connect to sync server. Are you offline?");
       }
-      setTimeout(() => toggleEditMode(true), 500); // Reset button text
-    }
-
-    // Adjust toggleEditMode to accept a refresh param
-    function toggleEditMode(preserveState = false) {
-      if (!preserveState) isEditMode = !isEditMode;
-      const btn = document.getElementById('editToggleBtn');
-      const content = document.querySelector('.content');
-      if (isEditMode) {
-        btn.innerText = "Disable Edit Mode";
-        btn.classList.add('active');
-        content.classList.add('edit-mode');
-      } else {
-        btn.innerText = "Enable Edit Mode";
-        btn.classList.remove('active');
-        content.classList.remove('edit-mode');
-      }
-    }
-
-    function punchIn(student) {
-      const now = new Date();
-      data[student].push({ id: Date.now(), ts: now.getTime(), str: formatDate(now) });
-      render();
-      saveToNotion();
-    }
-
-    function addPastSession(student) {
-      const input = document.getElementById(student + '-past-date');
-      if (!input.value) { alert("Please select a date first."); return; }
-      const dateParts = input.value.split('-');
-      const pastDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
-      data[student].push({ id: Date.now(), ts: pastDate.getTime(), str: formatDate(pastDate) });
-      input.value = '';
-      render();
-      saveToNotion();
-    }
-
-        function removeSession(student, id) {
-      if(confirm("Delete this session?")) {
-        data[student] = data[student].filter(s => s.id !== id);
-        render();
-        saveToNotion();
-      }
+      setTimeout(() => toggleEditMode(true), 500);
     }
 
     function toggleEditMode(preserveState = false) {
@@ -275,7 +237,8 @@ table { width: 100%; border-collapse: collapse; margin-bottom: 30px; display: bl
     }
 
     render();
-    fetchFromNotion();
+    fetchData();
   </script>
 </body>
 </html>
+
