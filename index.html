@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>LightKnight - September 2026 Tracker</title>
+  <style>
+    body { margin: 0; padding: 20px; background-color: #f7f5ef; font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #2D2D2D; }
+    .invoice-container { max-width: 800px; margin: 0 auto; background-color: #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; padding-bottom: 30px; }
+    .header { background-color: #1a2744; padding: 40px 20px; text-align: center; }
+    .header h1 { margin: 0; font-size: 32px; color: #c5a44e; font-weight: 700; }
+    .header p { margin: 8px 0 0; color: #a0aec0; font-size: 16px; }
+    .content { padding: 40px; }
+    .invoice-title { font-size: 24px; font-weight: bold; color: #1a2744; margin-top: 0; margin-bottom: 20px; }
+    .info-box { background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px; border-left: 4px solid #1a2744; display: flex; justify-content: space-between; align-items: center;}
+    .section-title { font-size: 20px; color: #1a2744; margin-bottom: 15px; padding-bottom: 5px; border-bottom: 2px solid #c5a44e; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+    
+    .controls { display: flex; gap: 10px; margin-bottom: 15px; background: #f0f4f8; padding: 15px; border-radius: 8px; align-items: center; flex-wrap: wrap; }
+    .btn-punch { background-color: #1a2744; color: #c5a44e; border: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 14px; transition: 0.2s; }
+    .btn-punch:hover { background-color: #2a3a5e; }
+    .btn-add-past { background-color: #c5a44e; color: #1a2744; border: none; padding: 8px 16px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 14px; transition: 0.2s; }
+    .btn-add-past:hover { background-color: #b08d3c; }
+    .btn-edit { background-color: #e2e8f0; color: #4a5568; border: 1px solid #cbd5e0; padding: 8px 16px; border-radius: 4px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+    .btn-edit:hover { background-color: #cbd5e0; }
+    .btn-edit.active { background-color: #e53e3e; color: white; border-color: #c53030; }
+    .btn-edit.active:hover { background-color: #c53030; }
+    
+    table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+    th { background-color: #f7f5ef; color: #1a2744; font-weight: 600; }
+    .subtotal-row td { background-color: #f7f5ef; font-weight: bold; color: #1a2744; border-bottom: none; }
+    
+    .remove-btn { background-color: #e53e3e; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; display: none; }
+    .remove-btn:hover { background-color: #c53030; }
+    
+    /* Edit mode toggle logic via CSS */
+    .edit-mode .remove-btn { display: inline-block; }
+    .remove-col { width: 80px; text-align: center; display: none; }
+    .edit-mode .remove-col { display: table-cell; }
+
+    .total-box { background-color: #1a2744; color: white; padding: 30px; border-radius: 8px; text-align: right; margin-bottom: 30px; }
+    .total-box span { display: block; }
+    .total-title { font-size: 16px; color: #cbd5e0; margin-bottom: 5px; }
+    .total-value { font-size: 32px; color: #c5a44e; font-weight: bold; }
+    .paypal-container { text-align: center; margin-bottom: 20px; }
+    .paypal-btn { display: inline-block; background-color: #c5a44e; color: #1a2744; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: bold; font-size: 18px; transition: background-color 0.2s; }
+    .paypal-btn:hover { background-color: #b08d3c; }
+  </style>
+</head>
+<body>
+  <div class="invoice-container">
+    <div class="header">
+      <h1>LightKnight</h1>
+      <p>Online Qur'an & Islamic Studies</p>
+    </div>
+    
+    <div class="content">
+      <h2 class="invoice-title">Live Tracker - September 2026</h2>
+      <div class="info-box">
+        <div>
+          <p><strong>Students:</strong> Youssef & Omar</p>
+          <p><strong>Billing Period:</strong> September 1, 2026 - September 30, 2026</p>
+        </div>
+        <button class="btn-edit" id="editToggleBtn" onclick="toggleEditMode()">Enable Edit Mode</button>
+      </div>
+
+      <!-- YOUSSEF -->
+      <h3 class="section-title">Youssef's Attendance</h3>
+      <div class="controls">
+        <button class="btn-punch" onclick="punchIn('youssef')">Punch-In Now ⚡</button>
+        <span style="color: #a0aec0; font-weight: 300;">|</span>
+        <input type="date" id="youssef-past-date" style="padding: 6px; border:1px solid #ccc; border-radius:4px; font-family: inherit;">
+        <button class="btn-add-past" onclick="addPastSession('youssef')">Add Past Date</button>
+      </div>
+      <table id="youssef-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Status</th>
+            <th class="remove-col">Action</th>
+          </tr>
+        </thead>
+        <tbody id="youssef-body"></tbody>
+        <tfoot>
+          <tr class="subtotal-row">
+            <td colspan="3">Youssef Subtotal: <span id="youssef-count">0</span> sessions</td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <!-- OMAR -->
+      <h3 class="section-title">Omar's Attendance</h3>
+      <div class="controls">
+        <button class="btn-punch" onclick="punchIn('omar')">Punch-In Now ⚡</button>
+        <span style="color: #a0aec0; font-weight: 300;">|</span>
+        <input type="date" id="omar-past-date" style="padding: 6px; border:1px solid #ccc; border-radius:4px; font-family: inherit;">
+        <button class="btn-add-past" onclick="addPastSession('omar')">Add Past Date</button>
+      </div>
+      <table id="omar-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Status</th>
+            <th class="remove-col">Action</th>
+          </tr>
+        </thead>
+        <tbody id="omar-body"></tbody>
+        <tfoot>
+          <tr class="subtotal-row">
+            <td colspan="3">Omar Subtotal: <span id="omar-count">0</span> sessions</td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <!-- TOTAL -->
+      <div class="total-box">
+        <span class="total-title">Total Sessions Attended</span>
+        <span class="total-value"><span id="total-count">0</span> Sessions</span>
+      </div>
+
+      <!-- PAYPAL -->
+      <div class="paypal-container">
+        <a href="https://paypal.me/FarisOransa58/" target="_blank" class="paypal-btn">Pay Invoice via PayPal</a>
+      </div>
+    </div>
+  </div>
+
+    <script>
+    let isEditMode = false;
+    let data = { youssef: [], omar: [] };
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const isAdmin = urlParams.get('admin') === 'true';
+
+    if (!isAdmin) {
+      document.getElementById('editToggleBtn').style.display = 'none';
+      const controls = document.querySelectorAll('.controls');
+      controls.forEach(c => c.style.display = 'none');
+    }
+
+    const saved = localStorage.getItem('lightknight_sept26');
+    if (saved) {
+      try { data = JSON.parse(saved); } catch (e) {}
+    }
+
+    const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+    const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+
+    function formatDate(dateObj) {
+      let m = months[dateObj.getMonth()];
+      let d = dateObj.getDate();
+      let y = dateObj.getFullYear();
+      let dayName = days[dateObj.getDay()];
+      return ${m} ,  ();
+    }
+
+    function render() {
+      ['youssef', 'omar'].forEach(student => {
+        const tbody = document.getElementById(student + '-body');
+        tbody.innerHTML = '';
+        
+        data[student].sort((a, b) => a.ts - b.ts);
+        data[student].forEach(session => {
+          let cleanStr = session.str.split(' - ')[0];
+          const tr = document.createElement('tr');
+          tr.innerHTML = 
+            <td></td>
+            <td>Attended</td>
+            <td class="remove-col" style="text-align:center;">
+              <button class="remove-btn" onclick="removeSession('', )">Remove</button>
+            </td>
+          ;
+          tbody.appendChild(tr);
+          session.str = cleanStr;
+        });
+        document.getElementById(student + '-count').innerText = data[student].length;
+      });
+      document.getElementById('total-count').innerText = data.youssef.length + data.omar.length;
+      localStorage.setItem('lightknight_sept26', JSON.stringify(data));
+    }
+
+    async function fetchFromNotion() {
+      try {
+        const res = await fetch('/api/tracker');
+        if (res.ok) {
+          const fetchedData = await res.json();
+          if (fetchedData.youssef && fetchedData.omar) {
+            data = fetchedData;
+            localStorage.setItem('lightknight_sept26', JSON.stringify(data));
+            render();
+          }
+        }
+      } catch (e) {
+        console.error("Failed to fetch from Notion:", e);
+      }
+    }
+
+    async function saveToNotion() {
+      try {
+        await fetch('/api/tracker', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+      } catch (e) {
+        console.error("Failed to save to Notion:", e);
+      }
+    }
+
+    function punchIn(student) {
+      const now = new Date();
+      data[student].push({ id: Date.now(), ts: now.getTime(), str: formatDate(now) });
+      render();
+      saveToNotion();
+    }
+
+    function addPastSession(student) {
+      const input = document.getElementById(student + '-past-date');
+      if (!input.value) { alert("Please select a date first."); return; }
+      const dateParts = input.value.split('-');
+      const pastDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+      data[student].push({ id: Date.now(), ts: pastDate.getTime(), str: formatDate(pastDate) });
+      input.value = '';
+      render();
+      saveToNotion();
+    }
+
+    function removeSession(student, id) {
+      if(confirm("Delete this session?")) {
+        data[student] = data[student].filter(s => s.id !== id);
+        render();
+        saveToNotion();
+      }
+    }
+
+    function toggleEditMode() {
+      isEditMode = !isEditMode;
+      const btn = document.getElementById('editToggleBtn');
+      const content = document.querySelector('.content');
+      if (isEditMode) {
+        btn.innerText = "Disable Edit Mode";
+        btn.classList.add('active');
+        content.classList.add('edit-mode');
+      } else {
+        btn.innerText = "Enable Edit Mode";
+        btn.classList.remove('active');
+        content.classList.remove('edit-mode');
+      }
+    }
+
+    render();
+    fetchFromNotion();
+  </script>
+</body>
+</html>
+
+
+
