@@ -63,10 +63,13 @@ table { width: 100%; border-collapse: collapse; margin-bottom: 30px; display: bl
     
     <div class="content">
       <h2 class="invoice-title">Live Tracker</h2>
-      <div class="info-box">
+            <div class="info-box">
         <div>
           <p><strong>Students:</strong> Youssef & Omar</p>
-          <p><strong>Billing Period:</strong> Lifetime</p>
+          <p style="margin-top: 10px; display: flex; align-items: center;">
+            <strong style="margin-right: 10px;">Select Month:</strong>
+            <select id="monthFilter" onchange="render()" style="padding: 6px 12px; font-size: 16px; border-radius: 4px; border: 1px solid #ccc; background-color: white; color: #1a2744; font-weight: bold; cursor: pointer;"></select>
+          </p>
         </div>
         <button class="btn-edit" id="editToggleBtn" onclick="toggleEditMode()">Enable Edit Mode</button>
       </div>
@@ -169,67 +172,78 @@ table { width: 100%; border-collapse: collapse; margin-bottom: 30px; display: bl
       render();
     }
 
-    function render() {
+        function render() {
+      // 1. Gather all unique months
+      let monthSet = new Set();
+      let currentDate = new Date();
+      let currentMonthStr = months[currentDate.getMonth()] + ' ' + currentDate.getFullYear();
+      monthSet.add(currentMonthStr);
+
+      ['youssef', 'omar'].forEach(student => {
+        data[student].forEach(session => {
+          if (!session || typeof session.str !== 'string') return;
+          let d = new Date(session.ts);
+          monthSet.add(months[d.getMonth()] + ' ' + d.getFullYear());
+        });
+      });
+
+      // Sort months chronologically
+      let sortedMonths = Array.from(monthSet).sort((a, b) => new Date(a) - new Date(b));
+
+      // Populate dropdown
+      const filterEl = document.getElementById('monthFilter');
+      const currentVal = filterEl.value; 
+      
+      filterEl.innerHTML = '';
+      sortedMonths.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m;
+        opt.innerText = m;
+        filterEl.appendChild(opt);
+      });
+
+      // Restore selection, or default to current month
+      if (currentVal && sortedMonths.includes(currentVal)) {
+        filterEl.value = currentVal;
+      } else {
+        filterEl.value = currentMonthStr;
+      }
+
+      const selectedMonth = filterEl.value;
+      let totalSelectedSessions = 0;
+
+      // 2. Render tables for selected month
       ['youssef', 'omar'].forEach(student => {
         const tbody = document.getElementById(student + '-body');
         tbody.innerHTML = '';
         
-        // Group by month
-        let groups = {};
-        data[student].sort((a, b) => a.ts - b.ts);
-        
-        data[student].forEach(session => {
-          if (!session || typeof session.str !== 'string') return;
+        let monthSessions = data[student].filter(session => {
+          if (!session || typeof session.str !== 'string') return false;
           let d = new Date(session.ts);
-          let monthKey = months[d.getMonth()] + ' ' + d.getFullYear();
-          if (!groups[monthKey]) groups[monthKey] = [];
-          groups[monthKey].push(session);
+          let mStr = months[d.getMonth()] + ' ' + d.getFullYear();
+          return mStr === selectedMonth;
         });
-
-        const monthKeys = Object.keys(groups);
         
-        // Determine the current/latest month so it defaults to open
-        let latestMonthKey = monthKeys.length > 0 ? monthKeys[monthKeys.length - 1] : null;
-
-        monthKeys.forEach(monthKey => {
-          const sessions = groups[monthKey];
-          const toggleKey = student + '-' + monthKey;
-          
-          // By default, expand the latest month, collapse previous months
-          if (expandedMonths[toggleKey] === undefined) {
-             expandedMonths[toggleKey] = (monthKey === latestMonthKey);
-          }
-          
-          let isExpanded = expandedMonths[toggleKey];
-
-          // Divider Row
-          const headerTr = document.createElement('tr');
-          headerTr.className = 'month-header';
-          headerTr.onclick = () => toggleMonth(student, monthKey);
-          headerTr.innerHTML = `
-            <td colspan="3">${isExpanded ? '▼' : '▶'} ${monthKey} (${sessions.length} sessions)</td>
+        monthSessions.sort((a, b) => a.ts - b.ts);
+        
+        monthSessions.forEach(session => {
+          let cleanStr = session.str.split(' - ')[0];
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${cleanStr}</td>
+            <td>Attended</td>
+            <td class="remove-col" style="text-align:center;">
+              <button class="remove-btn" onclick="removeSession('${student}', ${session.id})">Remove</button>
+            </td>
           `;
-          tbody.appendChild(headerTr);
-
-          // Session Rows
-          sessions.forEach(session => {
-            let cleanStr = session.str.split(' - ')[0];
-            const tr = document.createElement('tr');
-            if (!isExpanded) tr.classList.add('hidden-row');
-            tr.innerHTML = `
-              <td>${cleanStr}</td>
-              <td>Attended</td>
-              <td class="remove-col" style="text-align:center;">
-                <button class="remove-btn" onclick="removeSession('${student}', ${session.id})">Remove</button>
-              </td>
-            `;
-            tbody.appendChild(tr);
-          });
+          tbody.appendChild(tr);
         });
 
-        document.getElementById(student + '-count').innerText = data[student].length;
+        document.getElementById(student + '-count').innerText = monthSessions.length;
+        totalSelectedSessions += monthSessions.length;
       });
-      document.getElementById('total-count').innerText = data.youssef.length + data.omar.length;
+      
+      document.getElementById('total-count').innerText = totalSelectedSessions;
       localStorage.setItem('lightknight_v3', JSON.stringify(data));
     }
 async function fetchData() {
@@ -311,6 +325,7 @@ async function fetchData() {
   </script>
 </body>
 </html>
+
 
 
 
