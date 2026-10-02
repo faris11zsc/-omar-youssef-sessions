@@ -49,6 +49,9 @@ table { width: 100%; border-collapse: collapse; margin-bottom: 30px; display: bl
     .paypal-container { text-align: center; margin-bottom: 20px; }
     .paypal-btn { display: inline-block; background-color: #c5a44e; color: #1a2744; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: bold; font-size: 18px; transition: background-color 0.2s; }
     .paypal-btn:hover { background-color: #b08d3c; }
+      .month-header { background-color: #e2e8f0; cursor: pointer; font-weight: bold; color: #2a3a5e; }
+    .month-header:hover { background-color: #cbd5e0; }
+    .hidden-row { display: none; }
   </style>
 </head>
 <body>
@@ -59,11 +62,11 @@ table { width: 100%; border-collapse: collapse; margin-bottom: 30px; display: bl
     </div>
     
     <div class="content">
-      <h2 class="invoice-title">Live Tracker - September 2026</h2>
+      <h2 class="invoice-title">Live Tracker</h2>
       <div class="info-box">
         <div>
           <p><strong>Students:</strong> Youssef & Omar</p>
-          <p><strong>Billing Period:</strong> September 1, 2026 - September 30, 2026</p>
+          <p><strong>Billing Period:</strong> Lifetime</p>
         </div>
         <button class="btn-edit" id="editToggleBtn" onclick="toggleEditMode()">Enable Edit Mode</button>
       </div>
@@ -158,33 +161,78 @@ table { width: 100%; border-collapse: collapse; margin-bottom: 30px; display: bl
       return `${m} ${d}, ${y} (${dayName})`;
     }
 
+        let expandedMonths = {}; // Keeps track of toggled states: { 'youssef-September 2026': true }
+
+    function toggleMonth(student, monthKey) {
+      const key = student + '-' + monthKey;
+      expandedMonths[key] = !expandedMonths[key];
+      render();
+    }
+
     function render() {
       ['youssef', 'omar'].forEach(student => {
         const tbody = document.getElementById(student + '-body');
         tbody.innerHTML = '';
         
+        // Group by month
+        let groups = {};
         data[student].sort((a, b) => a.ts - b.ts);
-                data[student].forEach(session => {
+        
+        data[student].forEach(session => {
           if (!session || typeof session.str !== 'string') return;
-          let cleanStr = session.str.split(' - ')[0];
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${cleanStr}</td>
-            <td>Attended</td>
-            <td class="remove-col" style="text-align:center;">
-              <button class="remove-btn" onclick="removeSession('${student}', ${session.id})">Remove</button>
-            </td>
-          `;
-          tbody.appendChild(tr);
-          session.str = cleanStr;
+          let d = new Date(session.ts);
+          let monthKey = months[d.getMonth()] + ' ' + d.getFullYear();
+          if (!groups[monthKey]) groups[monthKey] = [];
+          groups[monthKey].push(session);
         });
+
+        const monthKeys = Object.keys(groups);
+        
+        // Determine the current/latest month so it defaults to open
+        let latestMonthKey = monthKeys.length > 0 ? monthKeys[monthKeys.length - 1] : null;
+
+        monthKeys.forEach(monthKey => {
+          const sessions = groups[monthKey];
+          const toggleKey = student + '-' + monthKey;
+          
+          // By default, expand the latest month, collapse previous months
+          if (expandedMonths[toggleKey] === undefined) {
+             expandedMonths[toggleKey] = (monthKey === latestMonthKey);
+          }
+          
+          let isExpanded = expandedMonths[toggleKey];
+
+          // Divider Row
+          const headerTr = document.createElement('tr');
+          headerTr.className = 'month-header';
+          headerTr.onclick = () => toggleMonth(student, monthKey);
+          headerTr.innerHTML = `
+            <td colspan="3">${isExpanded ? '▼' : '▶'} ${monthKey} (${sessions.length} sessions)</td>
+          `;
+          tbody.appendChild(headerTr);
+
+          // Session Rows
+          sessions.forEach(session => {
+            let cleanStr = session.str.split(' - ')[0];
+            const tr = document.createElement('tr');
+            if (!isExpanded) tr.classList.add('hidden-row');
+            tr.innerHTML = `
+              <td>${cleanStr}</td>
+              <td>Attended</td>
+              <td class="remove-col" style="text-align:center;">
+                <button class="remove-btn" onclick="removeSession('${student}', ${session.id})">Remove</button>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+        });
+
         document.getElementById(student + '-count').innerText = data[student].length;
       });
       document.getElementById('total-count').innerText = data.youssef.length + data.omar.length;
       localStorage.setItem('lightknight_v3', JSON.stringify(data));
     }
-
-    async function fetchData() {
+async function fetchData() {
       try {
         const res = await fetch('/api/tracker');
         if (res.ok) {
@@ -263,6 +311,7 @@ table { width: 100%; border-collapse: collapse; margin-bottom: 30px; display: bl
   </script>
 </body>
 </html>
+
 
 
 
